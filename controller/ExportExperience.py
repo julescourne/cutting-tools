@@ -11,10 +11,9 @@ class ExportExperience:
         """Constructeur"""
         switcher = Switcher()
         switcher.experience = id_experience
-        fichier_sortie = os.path.join(os.getcwd(), "nouveau_fichier.xlsx")
 
         workbook = openpyxl.load_workbook(
-            "C:\\Users\\Jules Courné\\OneDrive\\Bureau\\Cours\\5A\\PRD\\S10\\cutting-tools\\gabarit.xlsx")
+            os.getcwd() + "\\gabarit.xlsx")
 
         # Sélectionner la feuille de calcul 'Sheet1'
         worksheet = workbook.get_sheet_by_name('NEW2')
@@ -156,4 +155,4 @@ class ExportExperience:
                 str(switcher.vitesse_avance_dent()[0]) + '_' + str(switcher.assistance()[0]) + '.xlsx'
 
         # Enregistrer les modifications dans le fichier Excel existant
-        workbook.save(name)
+        workbook.save(os.getcwd() + '\\..\\downloads\\' + name)

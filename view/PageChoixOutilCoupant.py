@@ -1,4 +1,4 @@
-from tkinter import Frame, Label, Entry, Button, ttk, StringVar
+from tkinter import Frame, Label, Entry, Button, ttk, StringVar, Toplevel
 from tkinter.messagebox import showerror
 from controller.Usure_outilController import Usure_outilController
 from controller.Effort_outilController import Effort_outilController
@@ -52,7 +52,6 @@ def validate_string(text):
     else:
         return True
 
-
 class PageChoixOutilCoupant:
     """Classe qui gère la vue de la page Choix Outil Coupant"""
 
@@ -64,7 +63,6 @@ class PageChoixOutilCoupant:
         window : Tk
             La fenêtre principale de l'application
         """
-
         # Déclaration des controllers nécéssaires
         self.usure_outil_controller = Usure_outilController()
         self.effort_outil_controller = Effort_outilController()
@@ -107,7 +105,7 @@ class PageChoixOutilCoupant:
         self.amplitude_entry = Entry(self.frame_choix_outil, textvariable=lambda: self.check_float)
 
         # creation des labels pour chaque entry
-        self.temps_usinage_label = Label(self.frame_choix_outil, text="Temps usinage (min)")
+        self.temps_usinage_label = Label(self.frame_choix_outil, text="Temps usinage max (min)")
         self.contraintes_residuelles_label = Label(self.frame_choix_outil, text="Contraintes résiduelles max (MPa)")
         self.durete_max_label = Label(self.frame_choix_outil, text="Dureté max (Hv)")
         self.fatigue_max_label = Label(self.frame_choix_outil, text="Fatigue max (MPa)")
@@ -158,21 +156,23 @@ class PageChoixOutilCoupant:
 
         # creation du grid pour les boutons
         self.button_accueil = Button(self.frame_choix_outil, text="Accueil", font=("Arial", 20), bg='white', fg='black')
-        self.button_accueil.grid(row=15, column=1)
         self.button_valider = Button(self.frame_choix_outil, text="Valider", font=("Arial", 20), bg='white', fg='black')
+        self.button_accueil.grid(row=15, column=1)
         self.button_valider.grid(row=15, column=2)
 
+
+
         # creation des pop-ups d'informations pour chaque champs
-        CreatePopup(self.temps_usinage_label, text='Description temps d\'usinage\n')
-        CreatePopup(self.contraintes_residuelles_label, text='Description Contraintes résiduelles max\n')
-        CreatePopup(self.durete_max_label, text='Description Dureté max\n')
-        CreatePopup(self.fatigue_max_label, text='Description Fatigue max\n')
-        CreatePopup(self.rugosite_label, text='Description Ra\n')
-        CreatePopup(self.fx_label, text='Description Fx max à la dent\n')
-        CreatePopup(self.fy_label, text='Description Fy max à la dent\n')
-        CreatePopup(self.fz_label, text='Description Fz max à la dent\n')
-        CreatePopup(self.procede_label, text='Description Procédé d\'usinage\n')
-        CreatePopup(self.materiau_label, text='Description Matériau usiné\n')
-        CreatePopup(self.temperature_label, text='Description Température max\n')
-        CreatePopup(self.longueur_usine_label, text='Description Longueur usinée\n')
-        CreatePopup(self.amplitude_label, text='Description Amplitude de fréquence de vibration\n')
+        CreatePopup(self.temps_usinage_label, text='Paramètre indiquant le temps maximum que met l\'outil à usiner la pièce\nUnité : minute')
+        CreatePopup(self.contraintes_residuelles_label, text='Paramètres indiquant les contraintes maximum qui subsistent dans l\'outil qui ne sont soumises à aucun effort extérieur\nUnité : MégaPascal')
+        CreatePopup(self.durete_max_label, text='Paramètre indiquant la résistance mécanique maximum que l\'outil oppose à la pénétration\nUnité : Vickers')
+        CreatePopup(self.fatigue_max_label, text='Paramètre indiquant l\'endommagement maximum de l\'outil sous l\'effet de l\'usinage\nUnité : MégaPascal')
+        CreatePopup(self.rugosite_label, text='Paramètre indiquant l\'état de surface de l\'outil.\nUnité : Micromètre')
+        CreatePopup(self.fx_label, text='Paramètre indiquant l\'effort maximum à la dent sur l\'axe x\nUnité : Newton')
+        CreatePopup(self.fy_label, text='Paramètre indiquant l\'effort maximum à la dent sur l\'axe y\nUnité : Newton')
+        CreatePopup(self.fz_label, text='Paramètre indiquant l\'effort maximum à la dent sur l\'axe z\nUnité : Newton')
+        CreatePopup(self.procede_label, text='Paramètre indiquant le procédé d\'usinage voulu pour usiner la pièce\nUnité : ∅')
+        CreatePopup(self.materiau_label, text='Paramètre indiquant le matériau de la pièce à usiner\nUnité : ∅')
+        CreatePopup(self.temperature_label, text='Paramètre indiquant la température maximum de la pièce à usiner\nUnité : Degré Celsius')
+        CreatePopup(self.longueur_usine_label, text='Paramètre indiquant la longueur de la pièce à usiner\nUnité : millimètre')
+        CreatePopup(self.amplitude_label, text='Paramètre indiquant l\'amplitude associé à la fréquence de vibration entre la pièce et l\'outil\nUnité : ∅')

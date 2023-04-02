@@ -32,14 +32,11 @@ class PageResultatsChoixOutilCoupant:
 
         # BOTTOM
         self.frame_bot = Frame(self.frame_resultats)
-        self.frame_bot_right = LabelFrame(self.frame_bot, text="Listes des expériences les plus similaires",
-                                            font=("Arial", 15))
         self.frame_bot_left = Frame(self.frame_bot)
+
+        self.frame_bot_left = LabelFrame(self.frame_bot, text="Listes des expériences les plus similaires", font=("Arial", 15))
         self.frame_bot.pack(side=BOTTOM)
         self.frame_bot_left.pack(side=LEFT, padx=40)
-        self.frame_bot_right.pack(side=RIGHT, padx=10)
-        self.label_similar = Label(self.frame_bot_right, text="Listes des expériences les plus similaires", font=("Arial", 15))
-        self.label_similar.pack()
 
         # variable servant à afficher le nombre de composantes principales de l'ACP
         self.n_components_str = StringVar()

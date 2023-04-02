@@ -104,10 +104,6 @@ class ChoixOutilCoupant:
         pca_df = pd.concat([data_db_df.drop(columns=["ID", "ID_exp"]), choix_user], ignore_index=True,
                            sort=False)
 
-        for column in pca_df:
-            # Soustraire la moyenne de chaque colonne à chaque valeur : centrer les valeurs
-            pca_df[column] = pca_df[column].astype('float').sub(pca_df[column].astype('float').mean())
-
         self.values_container = pca_df.copy()
         self.hover_data = self.get_hover_data_df()
 
@@ -168,19 +164,11 @@ class ChoixOutilCoupant:
             self.total_var = self.pca.explained_variance_ratio_[:3].sum() * 100
 
             col = [i for i in range(len(self.components))]
-
             labels = ['x', 'y', 'z']
-            final_data = pd.DataFrame(self.components[:3, :len(self.components)], columns=col, index=labels)
-
-            # On rempli le dataframe avec les valeurs de l'acp
-            for column in self.hover_data.columns:
-                final_data.loc[column] = self.hover_data[column].values
+            final_data = pd.DataFrame(self.components[:len(self.components), :3], columns=labels, index=col)
+            final_data = pd.concat([final_data, self.hover_data], axis=1)
 
             final_data = final_data.round(4)
-            final_data = final_data.T
-            final_data.iloc[len(final_data) - 1, 0] = 0
-            final_data.iloc[len(final_data) - 1, 1] = 0
-            final_data.iloc[len(final_data) - 1, 2] = 0
 
             self.fig_3d = px.scatter_3d(
                 final_data, x='x', y='y', z='z', color='point', text='nom_exp', custom_data=final_data.columns,
@@ -207,7 +195,6 @@ class ChoixOutilCoupant:
                 'Temps d\'usinage (min): %{customdata[13]}',
                 'Amplitude vibration: %{customdata[14]}'
             ]))
-
 
             for i, feature in enumerate(self.features):
                 feat = ''
@@ -236,7 +223,7 @@ class ChoixOutilCoupant:
                 for j in range(len(self.var_explained)):
                     for p in self.var_explained[j]:
                         if feature in p:
-                            hovertemplate += p.replace(feature, 'Axe '+ str(j+1)) + '</b><br>'
+                            hovertemplate += p.replace(feature, 'Axe ' + str(j + 1)) + '</b><br>'
                     if j == 2:
                         break
 
@@ -276,15 +263,11 @@ class ChoixOutilCoupant:
         col = [i for i in range(len(self.components))]
 
         labels = ['x', 'y']
-        final_data = pd.DataFrame(self.components[:2, :len(self.components)], columns=col, index=labels)
+        final_data = pd.DataFrame(self.components[:len(self.components), :2], columns=labels, index=col)
 
-        for column in self.hover_data.columns:
-            final_data.loc[column] = self.hover_data[column].values
+        final_data = pd.concat([final_data, self.hover_data], axis=1)
 
         final_data = final_data.round(4)
-        final_data = final_data.T
-        final_data.iloc[len(final_data) - 1, 0] = 0
-        final_data.iloc[len(final_data) - 1, 1] = 0
 
         self.fig_2d = px.scatter(
             final_data, x='x', y='y', color='point', text='nom_exp', custom_data=final_data.columns,
@@ -354,7 +337,7 @@ class ChoixOutilCoupant:
                         if feature in p:
                             # taux_info.setdefault(feature, {})
                             # taux_info[feature]['axe'+str(j+1)] = float(p.split(': ')[1].split('%')[0])
-                            hovertemplate += p.replace(feature, 'Axe '+ str(j+1)) + '</b><br>'
+                            hovertemplate += p.replace(feature, 'Axe ' + str(j + 1)) + '</b><br>'
                     if j == 1:
                         break
 
@@ -381,6 +364,8 @@ class ChoixOutilCoupant:
 
         dist = []
         for exp_coord in self.components[:-1]:
+            print('experience', exp_coord)
+            print('user', exp_user)
             dist.append(get_distance(exp_user, exp_coord, self.pca.explained_variance_ratio_))
 
         dist = np.array(dist)
@@ -675,7 +660,6 @@ class ChoixOutilCoupant:
 
         user_data_df = self.get_user_df()
         user_data_df = user_data_df.assign(nom_exp='Point Utilisateur')
-
         final_hover_data = pd.concat([final_hover_data, user_data_df])
 
         final_hover_data = final_hover_data.dropna(axis=1, how='all').replace(to_replace=np.nan, value='∅')
@@ -771,7 +755,7 @@ class ChoixOutilCoupant:
         Returns:
             dataframe"""
 
-        user_df = pd.DataFrame(self.form_datas, index=[0])
+        user_df = pd.DataFrame(self.form_datas, index=[len(self.ids_exp)])
 
         user_df.drop(
             columns=['procede', 'materiau'],

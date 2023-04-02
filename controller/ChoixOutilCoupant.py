@@ -96,18 +96,27 @@ class ChoixOutilCoupant:
         # Récuperer les infos du formulaire rempli par l'utilisateur dans un dataframe
         choix_user = self.get_user_df()
 
-        # print(choix_user)
-
         # Concaténation des infos des différentes expériences récuperer
         data_db_df = pd.concat([info_ep_df, info_effort_outil_max_df, info_temp_outil_max_df, info_sortie_piece_max_df,
                                 info_temps_usinage_max_df, info_amplitude_max_df], axis=1, sort=False)
 
         # Ajout du point de réference utilisateur
-        pca_df = pd.concat([data_db_df.drop(columns=["ID"]), choix_user], ignore_index=True,
+        pca_df = pd.concat([data_db_df.drop(columns=["ID", "ID_exp"]), choix_user], ignore_index=True,
                            sort=False)
 
+        for column in pca_df:
+            # Soustraire la moyenne de chaque colonne à chaque valeur : centrer les valeurs
+            pca_df[column] = pca_df[column].astype('float').sub(pca_df[column].astype('float').mean())
 
-        self.values_container = pca_df
+        self.values_container = pca_df.copy()
+        self.hover_data = self.get_hover_data_df()
+
+        noms = []
+        for nom in self.exp_nouns:
+            for index in data_db_df.index:
+                if nom[0] == data_db_df.loc[index, 'ID_exp']:
+                    noms.append(nom[1])
+        noms.append('Point utilisateur')
 
         pca_df = pca_df.dropna(axis=1, how='all').replace(to_replace=np.nan, value=0)
 
@@ -149,51 +158,110 @@ class ChoixOutilCoupant:
 
     def create_and_display_fig_3d(self):
         """ Créé la modèlisation de l'ACP en 3d"""
-        # print(self.pca.components_)
+
+        # Si le nombre de composants est inférieur à 3
         if self.pca.n_components < 3:
             showinfo(title="Info", message="L'ACP ne contient pas assez de composantes pour être affichée en 3D")
         else:
-            if not self.fig_2d:
-                # On calcule le taux d'information contenu dans le graphique 3
-                self.total_var = self.pca.explained_variance_ratio_[:3].sum() * 100
-                col = [i for i in range(self.n_components)]
-                if len(self.components) == 2:
-                    labels = ['x', 'y']
-                elif len(self.components) == 3:
-                    labels = ['x', 'y', 'z']
-                elif len(self.components) > 3:
-                    labels = ['x', 'y', 'z', 't']
 
-                final_data = pd.DataFrame(self.components, columns=col, index=labels)
+            # On calcule le taux d'information contenu dans le graphique 3
+            self.total_var = self.pca.explained_variance_ratio_[:3].sum() * 100
 
-                for column in self.values_container.columns:
-                    final_data.loc[column] = self.values_container[column].values
+            col = [i for i in range(len(self.components))]
 
-                final_data = final_data.round(4)
-                final_data = final_data.T
+            labels = ['x', 'y', 'z']
+            final_data = pd.DataFrame(self.components[:3, :len(self.components)], columns=col, index=labels)
 
-                self.fig_3d = px.scatter_3d(
-                    final_data, x='x', y='y', z='z',
-                    title=f'Total Explained Variance: {self.total_var:.2f}%',
-                    hover_data=self.features
-                )
+            # On rempli le dataframe avec les valeurs de l'acp
+            for column in self.hover_data.columns:
+                final_data.loc[column] = self.hover_data[column].values
 
-                self.fig_3d.update_layout(scene=dict(
-                    xaxis_title="Factorial axe n°1: {}% ".format(round(self.pca.explained_variance_ratio_[0] * 100, 2)),
-                    yaxis_title="Factorial axe n°2: {}% ".format(round(self.pca.explained_variance_ratio_[1] * 100, 2)),
-                    zaxis_title="Factorial axe n°3: {}% ".format(round(self.pca.explained_variance_ratio_[2] * 100, 2)))
-                )
+            final_data = final_data.round(4)
+            final_data = final_data.T
+            final_data.iloc[len(final_data) - 1, 0] = 0
+            final_data.iloc[len(final_data) - 1, 1] = 0
+            final_data.iloc[len(final_data) - 1, 2] = 0
+
+            self.fig_3d = px.scatter_3d(
+                final_data, x='x', y='y', z='z', color='point', text='nom_exp', custom_data=final_data.columns,
+                title=f'Total Explained Variance: {self.total_var:.2f}%',
+                hover_data=self.features
+            )
+
+            self.fig_3d.update_traces(textposition='top center')
+
+            self.fig_3d.update_traces(hovertemplate='<br>'.join([
+                'coord x: %{x}',
+                'coord y: %{y}',
+                'coord z: %{z}',
+                'Nom experience: %{customdata[3]}',
+                'Longueur usiné (mm): %{customdata[4]}',
+                'Fx outil max (N): %{customdata[5]}',
+                'Fy outil max (N): %{customdata[6]}',
+                'Fz outil max (N): %{customdata[7]}',
+                'Température pièce max (°C): %{customdata[8]}',
+                'Contraintes résiduelles max (MPa): %{customdata[9]}',
+                'Dureté max (Hv): %{customdata[10]}',
+                'Fatigue max (MPa): %{customdata[11]}',
+                'Rugosité max (µm): %{customdata[12]}',
+                'Temps d\'usinage (min): %{customdata[13]}',
+                'Amplitude vibration: %{customdata[14]}'
+            ]))
+
+
+            for i, feature in enumerate(self.features):
+                feat = ''
+                if feature == 'fx':
+                    feat = 'Fx outil max (N)'
+                if feature == 'fy':
+                    feat = 'Fy outil max (N)'
+                if feature == 'fz':
+                    feat = 'Fz outil max (N)'
+                if feature == 'temperature':
+                    feat = 'Température pièce max (°C)'
+                if feature == 'contraintes_residuelles':
+                    feat = 'Contraintes résiduelles max (MPa)'
+                if feature == 'durete':
+                    feat = 'Dureté max (Hv)'
+                if feature == 'fatigue':
+                    feat = 'Fatigue max (MPa)'
+                if feature == 'rugosite':
+                    feat = 'Rugosité max (µm)'
+                if feature == 'temps_usinage':
+                    feat = 'Temps d\'usinage (min)'
+                if feature == 'temps_usinage':
+                    feat = 'Amplitude vibration'
+
+                hovertemplate = '<b>'
+                for j in range(len(self.var_explained)):
+                    for p in self.var_explained[j]:
+                        if feature in p:
+                            hovertemplate += p.replace(feature, 'Axe '+ str(j+1)) + '</b><br>'
+                    if j == 2:
+                        break
+
                 self.fig_3d.add_trace(
                     go.Scatter3d(
-                        x=[final_data.iloc[len(final_data) - 1, 0]],
-                        y=[final_data.iloc[len(final_data) - 1, 1]],
-                        z=[final_data.iloc[len(final_data) - 1, 2]],
-                        mode="text",
-                        text=["Point Utilisateur"],
-                        textposition="bottom right"
+                        x=[0, self.loadings[i, 0]],
+                        y=[0, self.loadings[i, 1]],
+                        z=[0, self.loadings[i, 2]],
+                        mode="lines",
+                        line=dict(color='black'),
+                        text=[feature],
+                        name=feat,
+                        hovertemplate=hovertemplate,
                     )
                 )
-            display_fig(self.fig_3d)
+
+            print(self.var_explained)
+
+            self.fig_3d.update_layout(scene=dict(
+                xaxis_title="Factorial axe n°1: {}% ".format(round(self.pca.explained_variance_ratio_[0] * 100, 2)),
+                yaxis_title="Factorial axe n°2: {}% ".format(round(self.pca.explained_variance_ratio_[1] * 100, 2)),
+                zaxis_title="Factorial axe n°3: {}% ".format(round(self.pca.explained_variance_ratio_[2] * 100, 2))),
+            )
+
+        display_fig(self.fig_3d)
 
     def create_and_display_fig_2d(self, with_variable=False):
         """ Créé la modèlisation de l'ACP en 2d avec ou sans les variables
@@ -205,73 +273,51 @@ class ChoixOutilCoupant:
         #     # On calcule le taux d'information contenu dans le graphique 2
         self.total_var = self.pca.explained_variance_ratio_[:2].sum() * 100
 
-        col = [i for i in range(self.n_components)]
-        if len(self.components) == 2:
-            labels = ['x', 'y']
-        elif len(self.components) == 3:
-            labels = ['x', 'y', 'z']
-        elif len(self.components) > 3:
-            labels = ['x', 'y', 'z', 't']
+        col = [i for i in range(len(self.components))]
 
-        final_data = pd.DataFrame(self.components, columns=col, index=labels)
+        labels = ['x', 'y']
+        final_data = pd.DataFrame(self.components[:2, :len(self.components)], columns=col, index=labels)
 
-        for column in self.values_container.columns:
-            final_data.loc[column] = self.values_container[column].values
+        for column in self.hover_data.columns:
+            final_data.loc[column] = self.hover_data[column].values
 
         final_data = final_data.round(4)
         final_data = final_data.T
+        final_data.iloc[len(final_data) - 1, 0] = 0
+        final_data.iloc[len(final_data) - 1, 1] = 0
 
         self.fig_2d = px.scatter(
-            final_data, x='x', y='y',
-            title=f'Total Explained Variance: {self.total_var:.2f}%',
-            hover_data=self.features
+            final_data, x='x', y='y', color='point', text='nom_exp', custom_data=final_data.columns,
+            title=f'Total Explained Variance: {self.total_var:.2f}%'
         )
+
+        self.fig_2d.update_traces(textposition='top center', marker_size=10)
+
+        self.fig_2d.update_traces(hovertemplate='<br>'.join([
+            'coord x: %{x}',
+            'coord y: %{y}',
+            'Nom experience: %{customdata[2]}',
+            'Longueur usiné (mm): %{customdata[3]}',
+            'Fx outil max (N): %{customdata[4]}',
+            'Fy outil max (N): %{customdata[5]}',
+            'Fz outil max (N): %{customdata[6]}',
+            'Température pièce max (°C): %{customdata[7]}',
+            'Contraintes résiduelles max (MPa): %{customdata[8]}',
+            'Dureté max (Hv): %{customdata[9]}',
+            'Fatigue max (MPa): %{customdata[10]}',
+            'Rugosité max (µm): %{customdata[11]}',
+            'Temps d\'usinage (min): %{customdata[12]}',
+            'Amplitude vibration: %{customdata[13]}'
+        ]))
 
         self.fig_2d.update_layout(
             xaxis_title="Factorial axe n°1: {}% ".format(round(self.pca.explained_variance_ratio_[0] * 100, 2)),
             yaxis_title="Factorial axe n°2: {}% ".format(round(self.pca.explained_variance_ratio_[1] * 100, 2)),
         )
 
-        self.fig_2d.add_trace(
-            go.Scatter(
-                x=[final_data.iloc[len(final_data) - 1, 0]],
-                y=[final_data.iloc[len(final_data) - 1, 1]],
-                mode="text",
-                text=["Point Utilisateur"],
-                textposition="bottom right"
-            )
-        )
-
-        self.fig_2d.add_annotation(
-            x=0.5,
-            y=-0.13,
-            showarrow=False,
-            text=f"{[str(i).replace('nan', '0') for i in self.var_explained[0]]}",
-            xref="paper",
-            yref="paper",
-            font=dict(
-                size=14,
-                color="black"
-            )
-        )
-
-        # Add y-axis label annotation
-        self.fig_2d.add_annotation(
-            x=-0.08,
-            y=0.5,
-            showarrow=False,
-            text=f"{[str(i).replace('nan', '0') for i in self.var_explained[1]]}",
-            textangle=-90,
-            xref="paper",
-            yref="paper",
-            font=dict(
-                size=14,
-                color="black"
-            )
-        )
-
         self.fig_2d.update_layout(margin=dict(l=100, r=100))
 
+        taux_info = {}
         if with_variable:
             for i, feature in enumerate(self.features):
                 self.fig_2d.add_shape(
@@ -280,15 +326,49 @@ class ChoixOutilCoupant:
                     x1=self.loadings[i, 0],
                     y1=self.loadings[i, 1]
                 )
-                self.fig_2d.add_annotation(
-                    x=self.loadings[i, 0],
-                    y=self.loadings[i, 1],
-                    ax=0, ay=0,
-                    xanchor="center",
-                    yanchor="bottom",
-                    text=feature,
+
+                if feature == 'fx':
+                    feat = 'Fx outil max (N)'
+                if feature == 'fy':
+                    feat = 'Fy outil max (N)'
+                if feature == 'fz':
+                    feat = 'Fz outil max (N)'
+                if feature == 'temperature':
+                    feat = 'Température pièce max (°C)'
+                if feature == 'contraintes_residuelles':
+                    feat = 'Contraintes résiduelles max (MPa)'
+                if feature == 'durete':
+                    feat = 'Dureté max (Hv)'
+                if feature == 'fatigue':
+                    feat = 'Fatigue max (MPa)'
+                if feature == 'rugosite':
+                    feat = 'Rugosité max (µm)'
+                if feature == 'temps_usinage':
+                    feat = 'Temps d\'usinage (min)'
+                if feature == 'temps_usinage':
+                    feat = 'Amplitude vibration'
+
+                hovertemplate = '<b>'
+                for j in range(len(self.var_explained)):
+                    for p in self.var_explained[j]:
+                        if feature in p:
+                            # taux_info.setdefault(feature, {})
+                            # taux_info[feature]['axe'+str(j+1)] = float(p.split(': ')[1].split('%')[0])
+                            hovertemplate += p.replace(feature, 'Axe '+ str(j+1)) + '</b><br>'
+                    if j == 1:
+                        break
+
+                self.fig_2d.add_trace(
+                    go.Scatter(
+                        x=[0, self.loadings[i, 0]],
+                        y=[0, self.loadings[i, 1]],
+                        mode="lines",
+                        line=dict(color='black'),
+                        name=feat,
+                        hovertemplate=hovertemplate,
+                    )
                 )
-        display_fig(self.fig_2d)
+            display_fig(self.fig_2d)
 
     def compute_closest_experiences(self):
         """Fonction qui calcule le tableau récapitulant les expériences les plus proches
@@ -298,19 +378,17 @@ class ChoixOutilCoupant:
 
         tab = []
         exp_user = self.components[-1]  # Les coordonées du point de l'utilisateur sont toujours en dernier
-        # print('exp_user :\t', exp_user, '\n')
 
         dist = []
         for exp_coord in self.components[:-1]:
             dist.append(get_distance(exp_user, exp_coord, self.pca.explained_variance_ratio_))
 
         dist = np.array(dist)
-        # print('dist :\t', dist, '\n')
 
         sorted_dist = dist.argsort()
 
         nb_rows = len(sorted_dist) if len(sorted_dist) < 10 else 10
-        # print('sorted_dist :\t', sorted_dist, '\n')
+
         for index in sorted_dist[:nb_rows]:
 
             mycursor = model.mydb.cursor()
@@ -443,9 +521,9 @@ class ChoixOutilCoupant:
             else:
                 for x in vibration:
                     if abs(x[3]) > abs(max_amplitude):
-                        max_amplitude = x[3]
+                        max_amplitude = x[2]
                     if abs(x[2]) > abs(max_freq):
-                        max_freq = x[2]
+                        max_freq = x[1]
 
             tab.append((self.ids_exp[index], experience[0][0], procede[0][1],
                         procede[0][2], procede[0][3], procede[0][4], procede[0][5],
@@ -453,14 +531,13 @@ class ChoixOutilCoupant:
                         procede[0][11], entree_piece[0][1], entree_piece[0][2],
                         entree_piece[0][3], entree_piece[0][4], entree_piece[0][5],
                         entree_piece[0][6], max_fx_piece, max_fy_piece, max_fz_piece,
-                        tmp_max_piece, sortie_piece_1, sortie_piece_2,sortie_piece_3,
+                        tmp_max_piece, sortie_piece_1, sortie_piece_2, sortie_piece_3,
                         sortie_piece_4, entree_outil[0][1],
                         entree_outil[0][2], entree_outil[0][3], entree_outil[0][4],
                         entree_outil[0][5], max_fx_outil, max_fy_outil,
                         max_fz_outil, tmp_max_outil, usure_outil_1, usure_outil_2,
                         usure_outil_3, copeaux_1, max_freq, max_amplitude,
                         round(dist[index], 3)))
-        # print('tab :\t', tab, '\n')
         return tab
 
     def get_max_per_exp(self, info_multi_row_per_exp_df):
@@ -475,8 +552,20 @@ class ChoixOutilCoupant:
             dataframes = []
             for id in self.ids_exp:
                 sub_df = info_multi_row_per_exp_df.query('ID == {}'.format(id))
-                dataframes.append(sub_df.abs().max().to_frame().T)
+                abs_max = sub_df.max().to_frame().T
+                abs_min = sub_df.min().to_frame().T
 
+                new_df = pd.DataFrame(columns=abs_max.columns)
+
+                for col in abs_max.columns:
+                    max_val = abs_max[col].iloc[0]
+                    min_val = abs_min[col].iloc[0]
+
+                    if abs(max_val) >= abs(min_val):
+                        new_df[col] = [max_val]
+                    else:
+                        new_df[col] = [min_val]
+                dataframes.append(new_df)
             return pd.concat(dataframes, ignore_index=True, sort=False)
 
     def get_info_effort_coupe_max_df(self):
@@ -496,7 +585,6 @@ class ChoixOutilCoupant:
                                                                             'fx' if 'fx' in self.form_datas else None,
                                                                             'fy' if 'fy' in self.form_datas else None,
                                                                             'fz' if 'fz' in self.form_datas else None])
-            # print('efforts :\n', info_effort_coupe_df)
             info_effort_coupe_max_df = self.get_max_per_exp(
                 info_effort_coupe_df.dropna(axis=1, how='all').replace(to_replace=np.nan, value=0))
 
@@ -522,6 +610,80 @@ class ChoixOutilCoupant:
             return info_effort_coupe_max_df
         return None
 
+    def get_hover_data_df(self):
+
+        info_nom_exp = [x for x in session.query(Experience.id_experience, Experience.nom).filter(
+            Experience.id_experience.in_(self.ids_exp))]
+        info_nom_exp_df = pd.DataFrame(info_nom_exp, columns=["ID", 'nom_exp'])
+
+        info_sortie_piece = [x for x in session.query(Entree_piece.id_experience, Sortie_piece.contrainte_residuelle,
+                                                      Sortie_piece.durete, Sortie_piece.limite_endurance,
+                                                      Sortie_piece.rugosite
+                                                      ).join(Entree_piece).filter(
+            Entree_piece.id_experience.in_(self.ids_exp))]
+        info_sortie_piece_df = pd.DataFrame(info_sortie_piece, columns=["ID", 'contraintes_residuelles', 'durete',
+                                                                        'fatigue', 'rugosite'])
+        info_sortie_piece_max_df = self.get_max_per_exp(
+            info_sortie_piece_df.dropna(axis=1, how='all').replace(to_replace=np.nan, value=0))
+
+        info_effort_coupe = [x for x in session.query(Entree_outil.id_experience, Effort_outil.fx, Effort_outil.fy,
+                                                      Effort_outil.fz).join(Entree_outil).filter(
+            Entree_outil.id_experience.in_(self.ids_exp))]
+
+        info_effort_coupe_df = pd.DataFrame(info_effort_coupe, columns=["ID", 'fx', 'fy', 'fz'])
+        info_effort_coupe_max_df = self.get_max_per_exp(
+            info_effort_coupe_df.dropna(axis=1, how='all').replace(to_replace=np.nan, value=0))
+
+        info_temperature = [x for x in session.query(Entree_outil.id_experience, Temperature_outil.temperature_outil
+                                                     ).join(Entree_outil).filter(
+            Entree_outil.id_experience.in_(self.ids_exp))]
+
+        info_temperature_df = pd.DataFrame(info_temperature, columns=["ID", 'temperature'])
+
+        info_temp_max_df = self.get_max_per_exp(
+            info_temperature_df.dropna(axis=1, how='all').replace(to_replace=np.nan, value=0))
+
+        info_temps_usinage = [x for x in
+                              session.query(Entree_outil.id_experience, Usure_outil.temps_usinage).join(Entree_outil)
+                                  .filter(Entree_outil.id_experience.in_(self.ids_exp))]
+
+        info_temps_usinage_df = pd.DataFrame(info_temps_usinage, columns=["ID", 'temps_usinage'])
+        info_temps_usinage_max_df = self.get_max_per_exp(info_temps_usinage_df)
+
+        info_vibration = [x for x in session.query(Entree_piece.id_experience,
+                                                   Vibration.amplitude)
+            .select_from(Entree_piece)
+            .join(Entree_outil, and_(Entree_outil.id_experience == Entree_piece.id_experience))
+            .join(Vibration, and_(Vibration.id_entree_piece == Entree_piece.id_entree_piece,
+                                  Vibration.id_entree_outil == Entree_outil.id_entree_outil))
+            .filter(Entree_piece.id_experience.in_(self.ids_exp))]
+
+        info_vibration_df = pd.DataFrame(info_vibration, columns=["ID", 'amplitude'])
+        info_vibration_max_df = self.get_max_per_exp(
+            info_vibration_df.dropna(axis=1, how='all').replace(to_replace=np.nan, value=0))
+
+        info_ep = [x for x in session.query(Entree_piece.id_experience, Entree_piece.longueur_usinee).filter(
+            Entree_piece.id_experience.in_(self.ids_exp)).
+            distinct(Entree_piece.id_experience)]
+
+        info_ep_df = pd.DataFrame(info_ep,
+                                  columns=["ID_exp", 'longueur_usine'])
+
+        final_hover_data = pd.concat(
+            [info_nom_exp_df, info_ep_df, info_effort_coupe_max_df, info_temp_max_df, info_sortie_piece_max_df,
+             info_temps_usinage_max_df, info_vibration_max_df], axis=1, sort=False).drop(columns=["ID", "ID_exp"])
+
+        user_data_df = self.get_user_df()
+        user_data_df = user_data_df.assign(nom_exp='Point Utilisateur')
+
+        final_hover_data = pd.concat([final_hover_data, user_data_df])
+
+        final_hover_data = final_hover_data.dropna(axis=1, how='all').replace(to_replace=np.nan, value='∅')
+        points = ['Point Experiece' for _ in range(len(final_hover_data) - 1)]
+        points.append('Point Utilisateur')
+        final_hover_data['point'] = points
+        return final_hover_data
+
     def get_info_sortie_piece_max_df(self):
         """Renvoie le dataframe associé aux efforts maximals de chaque compsosantes de chaque expérience
 
@@ -541,9 +703,9 @@ class ChoixOutilCoupant:
                                                                             'durete' if 'durete' in self.form_datas else None,
                                                                             'fatigue' if 'fatigue' in self.form_datas else None,
                                                                             'rugosite' if 'rugosite' in self.form_datas else None])
+
             info_sortie_piece_max_df = self.get_max_per_exp(
                 info_sortie_piece_df.dropna(axis=1, how='all').replace(to_replace=np.nan, value=0))
-
             return info_sortie_piece_max_df
         return None
 
@@ -599,9 +761,8 @@ class ChoixOutilCoupant:
             distinct(Entree_piece.id_experience)]
 
         info_ep_df = pd.DataFrame(info_ep,
-                                  columns=["ID",
+                                  columns=["ID_exp",
                                            'longueur_usine' if 'longueur_usine' in self.form_datas else None])
-        # print(info_ep_df)
         return info_ep_df.dropna(axis=1, how="all").replace(to_replace=np.nan, value=0)
 
     def get_user_df(self):

@@ -24,6 +24,7 @@ class Switcher(object):
         result = []
         if self.experience is not None:
             sql1 = """select type_procede from procede where id_experience = %s"""
+            print(self.experience)
             self.mycursor.execute(sql1, (self.experience,))
             type_procede = self.mycursor.fetchall()
             for x in type_procede:
@@ -394,7 +395,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut limite_endurance de la table sortie_piece associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_piece where id_experience = %s order by id"""
+            sql1 = """select * from entree_piece where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_piece = self.mycursor.fetchall()
             for i in entree_piece:
@@ -409,7 +410,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut contrainte_residuelle de la table sortie_piece associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_piece where id_experience = %s order by id"""
+            sql1 = """select * from entree_piece where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_piece = self.mycursor.fetchall()
             for i in entree_piece:
@@ -424,7 +425,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut temps_temperature_piece de la table temperature_piece associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_piece where id_experience = %s order by id"""
+            sql1 = """select * from entree_piece where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_piece = self.mycursor.fetchall()
             for i in entree_piece:
@@ -439,7 +440,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut temperature_piece de la table temperature_piece associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_piece where id_experience = %s order by id"""
+            sql1 = """select * from entree_piece where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_piece = self.mycursor.fetchall()
             for i in entree_piece:
@@ -454,7 +455,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut temps_effort_piece de la table effort_piece associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_piece where id_experience = %s order by id"""
+            sql1 = """select * from entree_piece where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_piece = self.mycursor.fetchall()
             for i in entree_piece:
@@ -469,7 +470,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut fx de la table effort_piece associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_piece where id_experience = %s order by id"""
+            sql1 = """select * from entree_piece where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_piece = self.mycursor.fetchall()
             for i in entree_piece:
@@ -484,7 +485,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut fy de la table effort_piece associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_piece where id_experience = %s order by id"""
+            sql1 = """select * from entree_piece where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_piece = self.mycursor.fetchall()
             for i in entree_piece:
@@ -499,7 +500,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut fz de la table effort_piece associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_piece where id_experience = %s order by id"""
+            sql1 = """select * from entree_piece where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_piece = self.mycursor.fetchall()
             for i in entree_piece:
@@ -514,7 +515,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut temps_effort_outil de la table effort_outil associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_outil where id_experience = %s order by id"""
+            sql1 = """select * from entree_outil where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_outil = self.mycursor.fetchall()
             for i in entree_outil:
@@ -544,7 +545,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut fy de la table effort_outil associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_outil where id_experience = %s order by id"""
+            sql1 = """select * from entree_outil where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_outil = self.mycursor.fetchall()
             for i in entree_outil:
@@ -559,7 +560,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut fz de la table effort_outil associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_outil where id_experience = %s order by id"""
+            sql1 = """select * from entree_outil where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_outil = self.mycursor.fetchall()
             for i in entree_outil:
@@ -574,7 +575,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut temps_temperature_outil de la table temperature_outil associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_outil where id_experience = %s order by id"""
+            sql1 = """select * from entree_outil where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_outil = self.mycursor.fetchall()
             for i in entree_outil:
@@ -589,7 +590,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut temperature_outil de la table temperature_outil associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_outil where id_experience = %s order by id"""
+            sql1 = """select * from entree_outil where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_outil = self.mycursor.fetchall()
             for i in entree_outil:
@@ -604,7 +605,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut temps_usinage de la table usure_outil associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_outil where id_experience = %s order by id"""
+            sql1 = """select * from entree_outil where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_outil = self.mycursor.fetchall()
             for i in entree_outil:
@@ -619,7 +620,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut vb de la table usure_outil associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_outil where id_experience = %s order by id"""
+            sql1 = """select * from entree_outil where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_outil = self.mycursor.fetchall()
             for i in entree_outil:
@@ -634,7 +635,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut er de la table usure_outil associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_outil where id_experience = %s order by id"""
+            sql1 = """select * from entree_outil where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_outil = self.mycursor.fetchall()
             for i in entree_outil:
@@ -649,7 +650,7 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut kt de la table usure_outil associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_outil where id_experience = %s order by id"""
+            sql1 = """select * from entree_outil where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_outil = self.mycursor.fetchall()
             for i in entree_outil:
@@ -664,10 +665,10 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut temps_vibration de la table vibration associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_outil where id_experience = %s order by id"""
+            sql1 = """select * from entree_outil where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_outil = self.mycursor.fetchall()
-            sql2 = """select * from entree_piece where id_experience = %s order by id"""
+            sql2 = """select * from entree_piece where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql2, (self.experience,))
             entree_piece = self.mycursor.fetchall()
             for i in entree_outil:
@@ -683,10 +684,10 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut frequence de la table vibration associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_outil where id_experience = %s order by id"""
+            sql1 = """select * from entree_outil where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_outil = self.mycursor.fetchall()
-            sql2 = """select * from entree_piece where id_experience = %s order by id"""
+            sql2 = """select * from entree_piece where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql2, (self.experience,))
             entree_piece = self.mycursor.fetchall()
             for i in entree_outil:
@@ -702,10 +703,10 @@ class Switcher(object):
         """Récupération des valeurs de l'attribut amplitude de la table vibration associés à l'experience"""
         result = []
         if self.experience is not None:
-            sql1 = """select * from entree_outil where id_experience = %s order by id"""
+            sql1 = """select * from entree_outil where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql1, (self.experience,))
             entree_outil = self.mycursor.fetchall()
-            sql2 = """select * from entree_piece where id_experience = %s order by id"""
+            sql2 = """select * from entree_piece where id_experience = %s order by id_experience"""
             self.mycursor.execute(sql2, (self.experience,))
             entree_piece = self.mycursor.fetchall()
             for i in entree_outil:

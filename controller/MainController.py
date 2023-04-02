@@ -56,7 +56,7 @@ class MainController:
         self.form_datas = {}  # données du formulaire choix outil coupant
 
         # configuration action bouton
-        self.menu_view.butt_import.config(command=lambda: self.import_data())
+        self.menu_view.butt_import.config(command=self.import_data)
         self.menu_view.butt_outil.config(command=self.display_page_choix_outil_coupant)
         self.configure_action_buttons_page_choix_outil_coupant()
         self.configure_action_buttons_page_resultats_choix_outil_coupant()
@@ -230,12 +230,10 @@ class MainController:
     def configure_action_buttons_page_resultats_choix_outil_coupant(self):
         """fonction qui configure les actions des boutons de la page résultats choix outil coupant"""
         # Boutons
-        self.page_resultats_choix_outil_coupant.butt_acp_2d.config(
-            command=self.controller_choix_outil_coupant.create_and_display_fig_2d)
+        self.page_resultats_choix_outil_coupant.butt_acp_2d.config(command=lambda:
+        self.controller_choix_outil_coupant.create_and_display_fig_2d(with_variable=True))
         self.page_resultats_choix_outil_coupant.butt_acp_3d.config(
             command=self.controller_choix_outil_coupant.create_and_display_fig_3d)
-        self.page_resultats_choix_outil_coupant.butt_acp_params.config(command=lambda:
-        self.controller_choix_outil_coupant.create_and_display_fig_2d(with_variable=True))
 
         self.page_resultats_choix_outil_coupant.treeview.bind('<Double-Button-1>', DashboardController(
             self.page_resultats_choix_outil_coupant.treeview, self.form_datas).ouvrir_dash_interface)

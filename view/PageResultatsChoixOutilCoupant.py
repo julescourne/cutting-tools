@@ -25,14 +25,21 @@ class PageResultatsChoixOutilCoupant:
         self.frame_top_left.pack(side=LEFT, padx=40)
         self.frame_top_right.pack(side=RIGHT, padx=40)
 
+        self.frame_right = Frame(self.frame_resultats)
+        self.frame_right_bottom = Frame(self.frame_right)
+        self.frame_right.pack(side=RIGHT)
+        self.frame_right_bottom.pack(side=BOTTOM, padx=10)
+
         # BOTTOM
         self.frame_bot = Frame(self.frame_resultats)
         self.frame_bot_right = LabelFrame(self.frame_bot, text="Listes des expériences les plus similaires",
-                                           font=("Arial", 15))
+                                            font=("Arial", 15))
         self.frame_bot_left = Frame(self.frame_bot)
         self.frame_bot.pack(side=BOTTOM)
         self.frame_bot_left.pack(side=LEFT, padx=40)
-        self.frame_bot_right.pack(side=RIGHT, padx=40)
+        self.frame_bot_right.pack(side=RIGHT, padx=10)
+        self.label_similar = Label(self.frame_bot_right, text="Listes des expériences les plus similaires", font=("Arial", 15))
+        self.label_similar.pack()
 
         # variable servant à afficher le nombre de composantes principales de l'ACP
         self.n_components_str = StringVar()
@@ -41,28 +48,30 @@ class PageResultatsChoixOutilCoupant:
         self.label_componnets = Label(self.frame_top_left, textvariable=self.n_components_str)
         self.label_componnets.pack()
 
-        # Boutton permettant d'afficher le graphe de l'ACP en 2D
         self.butt_acp_2d = Button(self.frame_top_left, text="Afficher l'ACP en 2D", font=("Arial", 15),
                                   bg='white', fg='black')
-        self.butt_acp_2d.pack(pady=50)
+        self.butt_acp_2d.pack(side=RIGHT, pady=50)
 
         # Boutton permettant d'afficher le graphe de l'ACP en 3D
         self.butt_acp_3d = Button(self.frame_top_left, text="Afficher l'ACP en 3D", font=("Arial", 15),
                                   bg='white', fg='black')
-        self.butt_acp_3d.pack(pady=50)
+        self.butt_acp_3d.pack(side=RIGHT, pady=50, padx=10)
 
-        # Boutton permettant d'afficher le graphe de l'ACP en 2D avec l'explication des paramètres
-        self.butt_acp_params = Button(self.frame_top_right, text="Afficher l'ACP (2D) avec les variables",
-                                      font=("Arial", 15),
-                                      bg='white', fg='black')
-        self.butt_acp_params.pack(pady=50)
+        self.butt_retour = Button(self.frame_resultats, text="Retour", font=("Arial", 15), bg='white', fg='black')
+        self.butt_retour.pack(side=LEFT, pady=10, padx=5)
 
-        self.butt_accueil = Button(self.frame_top_right, text="Accueil", font=("Arial", 15), bg='white', fg='black')
-        self.butt_accueil.pack(pady=50)
-        # self.butt_accueil.pack(side=LEFT)
+        # Boutton Accueil
+        self.butt_accueil = Button(self.frame_resultats, text="Accueil", font=("Arial", 15), bg='white', fg='black')
+        self.butt_accueil.pack(side=LEFT, pady=10, padx=5)
 
-        self.butt_retour = Button(self.frame_top_right, text="Retour", font=("Arial", 15), bg='white', fg='black')
-        self.butt_retour.pack(pady=50)
+        # Label above and to the right of the treeview
+        self.label_outil = LabelFrame(self.frame_right_bottom, text="Outils coupant conseillé", font=("Arial", 14, "bold"), fg="black", bg="#9C9C9C")
+        self.label_outil.pack(side=BOTTOM, pady=10, padx=5)
+
+        # Créer un label pour le texte en dessous
+        mon_outil_coupant = Label(self.label_outil, text="Carbure monobloc", font=("Arial", 12), bg="#9C9C9C")
+        mon_outil_coupant.pack(pady=10)
+
 
         # Tableau récapitulatif des expériences similaires
         self.treeview = ttk.Treeview(self.frame_bot_left, columns=("id_exp", "nom_exp",
@@ -78,6 +87,7 @@ class PageResultatsChoixOutilCoupant:
                                                                    "revete", "fx_o", "fy_o", "fz_o", "tmp_o", "vb",
                                                                    "er", "kt", "epaiss",
                                                                    "freq", "ampl", "dist"), show="headings", )
+
 
         # header experience
         self.treeview.heading("id_exp", text="ID")
@@ -146,6 +156,7 @@ class PageResultatsChoixOutilCoupant:
         self.treeview.grid(column=0, row=0, sticky="nsew")
         vsb.grid(column=1, row=0, sticky="ns")
         hsb.grid(column=0, row=1, sticky="ew")
+
         for column in self.treeview["columns"]:
             self.treeview.column(column, anchor=CENTER)
 

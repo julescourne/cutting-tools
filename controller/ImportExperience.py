@@ -151,10 +151,12 @@ class ImportExperience:
 
         # on recupere l'id de l'experience
         id_exp = None
-        mycursor.execute("""select * from experience order by id_experience desc limit 1""")
+        # mycursor.execute("""select * from experience order by id_experience desc limit 1""")
+        mycursor.execute("""select id_experience from experience""")
         experience = mycursor.fetchall()
-        for x in experience:
-            id_exp = x[0]
+        print(experience[-1][0])
+        id_exp = experience[-1][0]
+        # print(id_exp)
 
         # lecture du fichier
         xl_file = pd.read_excel(self.chemin, sheet_name='NEW2', skiprows=1, na_filter=False)
@@ -168,6 +170,7 @@ class ImportExperience:
                 self.build_entree_piece(index, row.values[4])
             if row.values[6] is not None and index <= 11:
                 self.build_procede(index, row.values[6])
+
 
         # insertion de l'objet entree_piece en base de donnees
         entree_p = pd.DataFrame({
@@ -517,6 +520,6 @@ class ImportExperience:
                 self.chemin = os.path.abspath(self.rep_file.name)
                 self.build_entree()
                 self.build_sorties()
-                showerror(title="Info", message="Experience importé")
+                showinfo(title="Info", message="Experience importé")
             except:
                 showerror(title="Erreur", message="Mauvais format de fichier")

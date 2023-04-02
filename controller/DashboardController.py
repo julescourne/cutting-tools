@@ -7,6 +7,8 @@ from dash import html, dcc
 import webbrowser
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
+
+from controller.ExportExperience import ExportExperience
 from model import mydb
 from view.Dashboard import Dashboard
 import pandas as pd
@@ -103,7 +105,25 @@ class DashboardController:
         self.update_dropdown_i_bar_callback(5)
         self.update_dropdown_i_bar_callback(6)
         self.update_radar_callbacks()
+        self.export_to_excel()
         self.graph_bar_callback()
+
+    def export_to_excel(self):
+        @self.app.callback(
+            Output('export', 'n_clicks'),
+            [Input('export', 'n_clicks')]
+        )
+        def export_to_excel(n_clicks):
+            ctx = dash.callback_context
+            if not ctx.triggered:
+                button_id = 'btn-info'
+            else:
+                button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+            if button_id == 'export':
+                export = ExportExperience(self.data_exp[0])
+
+            return n_clicks
 
     def visibility(self):
         @self.app.callback(
@@ -878,7 +898,7 @@ class DashboardController:
                 for i in range(1, len(self.df_radar)):
                     index = 'dropdown{}'.format(i)
                     # Si le dropdown a un selection
-                    if self.df_radar[index] is not None:
+                    if self.df_radar[index] is not None and self.df_radar[index]['value'] is not None:
                         # Si la selection du dropdown est un choix utilisateur
                         if self.map_datas(self.df_radar[index]['label']) in self.user_data.keys():
                             labels_exp.append(self.df_radar[index]['label'])

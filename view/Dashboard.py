@@ -501,7 +501,8 @@ class Dashboard:
                             html.Legend("Outil d'usinage",
                                         style={'font-family': 'Abang', 'color': 'gray', 'padding': '20px',
                                                'font-size': '20px'}),
-                            html.Div(id="content-info-outil", children=[self.info_outil])
+                            html.Div(id="content-info-outil", children=[self.info_outil]),
+                            html.Button("Exporter experience", id="export", n_clicks=0)
                         ], className='content', id='content_infos', style={'display': 'block', 'width': '80vh'}),
                         html.Div([
                             html.H2(id='title', children="Visualisation en radar", style={'margin-bottom': '20px'}),
